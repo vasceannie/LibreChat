@@ -1,0 +1,25 @@
+FROM ghcr.io/danny-avila/librechat-dev:latest
+
+USER root
+
+# Install Python using apk with correct package names
+RUN apk add --no-cache python3 py3-pip git py3-virtualenv
+
+# Install uv and create uvx symlink
+RUN wget -qO- https://astral.sh/uv/install.sh | UV_FORCE_INSTALL=1 sh && \
+    mkdir -p /usr/local/bin && \
+    cp /root/.local/bin/uvx /usr/local/bin/uvx && \
+    chmod +x /usr/local/bin/uvx
+
+# Add to PATH
+ENV PATH="/root/.local/bin:/usr/local/bin:/opt/venv/bin:$PATH"
+
+# Create and activate virtual environment, then install packages
+RUN python3 -m venv /opt/venv && \
+    . /opt/venv/bin/activate && \
+    pip3 install --no-cache-dir \
+    git+https://github.com/simonb97/mcp-server-everything-search.git \
+    git+https://github.com/llm-context/lc-mcp.git \
+    git+https://github.com/microsoft/playwright-mcp-server.git
+
+USER node 
