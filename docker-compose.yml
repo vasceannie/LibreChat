@@ -42,10 +42,10 @@ services:
     container_name: chat-mongodb
     image: mongo
     restart: always
-    user: "${UID}:${GID}"
+    user: mongodb
     volumes:
-      - ./data-node:/data/db
-    command: mongod --noauth
+      - mongodb-data:/data/db
+    command: ["--noauth"]
     networks:
       - librechat-net
     healthcheck:
@@ -97,6 +97,7 @@ services:
 
 volumes:
   pgdata2:
+  mongodb-data:
 
 networks:
   librechat-net:
