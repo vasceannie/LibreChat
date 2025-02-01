@@ -31,6 +31,7 @@ services:
       - "/c/Users/PC/OneDrive/Documents/Obsidian Vault:/app/data/obsidian:rw"
       - "/f:/app/data/F:rw"
       - "/z:/app/data/Z:rw"
+      - "/c:/app/data/C:ro"
       - "/home/vasceannie/repos:/home/vasceannie/repos:rw"
       - "/c/Users/PC/AppData/Local/FlowLauncher/app-1.19.3/EverythingSDK/x86:/app/data/EverythingSDK:rw"
   mongodb:
