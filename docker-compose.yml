@@ -7,9 +7,10 @@ services:
     ports:
       - "${PORT}:${PORT}"
     depends_on:
-      - mongodb
-      - meilisearch
-      - rag_api
+      mongodb:
+        condition: service_healthy
+      meilisearch:
+        condition: service_healthy
     image: ghcr.io/danny-avila/librechat-dev:latest
     restart: always
     user: "${UID}:${GID}"
@@ -35,6 +36,8 @@ services:
       - "/c:/app/data/C:ro"
       - "/home/vasceannie/repos:/home/vasceannie/repos:rw"
       - "/c/Users/PC/AppData/Local/FlowLauncher/app-1.19.3/EverythingSDK/x86:/app/data/EverythingSDK:rw"
+    networks:
+      - librechat-net
   mongodb:
     container_name: chat-mongodb
     image: mongo
@@ -43,6 +46,14 @@ services:
     volumes:
       - ./data-node:/data/db
     command: mongod --noauth
+    networks:
+      - librechat-net
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
   meilisearch:
     container_name: chat-meilisearch
     image: getmeili/meilisearch:v1.12.3
@@ -57,9 +68,11 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-      start_period: 40s
+      start_period: 60s
     volumes:
       - ./meili_data_v1.12:/meili_data
+    networks:
+      - librechat-net
   vectordb:
     container_name: vectordb
     image: ankane/pgvector:latest
@@ -84,3 +97,7 @@ services:
 
 volumes:
   pgdata2:
+
+networks:
+  librechat-net:
+    driver: bridge
