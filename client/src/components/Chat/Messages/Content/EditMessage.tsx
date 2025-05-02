@@ -60,7 +60,8 @@ const EditMessage = ({
           conversationId,
         },
         {
-          resubmitFiles: true,
+          isResubmission: true,
+          overrideFiles: message.files,
         },
       );
 
@@ -114,7 +115,6 @@ const EditMessage = ({
             ? {
               ...msg,
               text: data.text,
-              isEdited: true,
             }
             : msg,
         ),

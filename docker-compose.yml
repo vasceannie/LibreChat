@@ -27,6 +27,7 @@ services:
         source: ./.env
         target: /app/.env
       - ./images:/app/client/public/images
+      - ./uploads:/app/uploads
       - ./logs:/app/api/logs
       - ./data:/app/data:rw
       - ./data/files:/app/data/files:rw

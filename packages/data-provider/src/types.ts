@@ -18,6 +18,8 @@ export type TMessages = TMessage[];
 
 /* TODO: Cleanup EndpointOption types */
 export type TEndpointOption = {
+  spec?: string | null;
+  iconURL?: string | null;
   endpoint: EModelEndpoint;
   endpointType?: EModelEndpoint;
   modelDisplayLabel?: string;
@@ -39,11 +41,18 @@ export type TEndpointOption = {
   overrideUserMessageId?: string;
 };
 
+export type TEphemeralAgent = {
+  mcp?: string[];
+  execute_code?: boolean;
+};
+
 export type TPayload = Partial<TMessage> &
   Partial<TEndpointOption> & {
     isContinued: boolean;
     conversationId: string | null;
     messages?: TMessages;
+    isTemporary: boolean;
+    ephemeralAgent?: TEphemeralAgent | null;
   };
 
 export type TSubmission = {
@@ -53,13 +62,15 @@ export type TSubmission = {
   userMessage: TMessage;
   isEdited?: boolean;
   isContinued?: boolean;
+  isTemporary: boolean;
   messages: TMessage[];
   isRegenerate?: boolean;
-  conversationId?: string;
+  isResubmission?: boolean;
   initialResponse?: TMessage;
   conversation: Partial<TConversation>;
   endpointOption: TEndpointOption;
   clientTimestamp?: string;
+  ephemeralAgent?: TEphemeralAgent | null;
 };
 
 export type EventSubmission = Omit<TSubmission, 'initialResponse'> & { initialResponse: TMessage };
@@ -80,6 +91,7 @@ export type TUpdateUserPlugins = {
   auth?: unknown;
 };
 
+// TODO `label` needs to be changed to the proper `TranslationKeys`
 export type TCategory = {
   id?: string;
   value: string;
@@ -97,6 +109,12 @@ export type TError = {
   };
 };
 
+export type TBackupCode = {
+  codeHash: string;
+  used: boolean;
+  usedAt: Date | null;
+};
+
 export type TUser = {
   id: string;
   username: string;
@@ -106,6 +124,8 @@ export type TUser = {
   role: string;
   provider: string;
   plugins?: string[];
+  twoFactorEnabled?: boolean;
+  backupCodes?: TBackupCode[];
   createdAt: string;
   updatedAt: string;
 };
@@ -170,15 +190,17 @@ export type TArchiveConversationResponse = TConversation;
 export type TSharedMessagesResponse = Omit<TSharedLink, 'messages'> & {
   messages: TMessage[];
 };
-export type TSharedLinkRequest = Partial<
-  Omit<TSharedLink, 'messages' | 'createdAt' | 'updatedAt'>
-> & {
-  conversationId: string;
-};
 
-export type TSharedLinkResponse = TSharedLink;
-export type TSharedLinksResponse = TSharedLink[];
-export type TDeleteSharedLinkResponse = TSharedLink;
+export type TCreateShareLinkRequest = Pick<TConversation, 'conversationId'>;
+
+export type TUpdateShareLinkRequest = Pick<TSharedLink, 'shareId'>;
+
+export type TSharedLinkResponse = Pick<TSharedLink, 'shareId'> &
+  Pick<TConversation, 'conversationId'>;
+
+export type TSharedLinkGetResponse = TSharedLinkResponse & {
+  success: boolean;
+};
 
 // type for getting conversation tags
 export type TConversationTagsResponse = TConversationTag[];
@@ -203,12 +225,10 @@ export type TDuplicateConvoRequest = {
   conversationId?: string;
 };
 
-export type TDuplicateConvoResponse =
-  | {
-      conversation: TConversation;
-      messages: TMessage[];
-    }
-  | undefined;
+export type TDuplicateConvoResponse = {
+  conversation: TConversation;
+  messages: TMessage[];
+};
 
 export type TForkConvoRequest = {
   messageId: string;
@@ -282,11 +302,61 @@ export type TRegisterUser = {
 export type TLoginUser = {
   email: string;
   password: string;
+  token?: string;
+  backupCode?: string;
 };
 
 export type TLoginResponse = {
-  token: string;
-  user: TUser;
+  token?: string;
+  user?: TUser;
+  twoFAPending?: boolean;
+  tempToken?: string;
+};
+
+export type TEnable2FAResponse = {
+  otpauthUrl: string;
+  backupCodes: string[];
+  message?: string;
+};
+
+export type TVerify2FARequest = {
+  token?: string;
+  backupCode?: string;
+};
+
+export type TVerify2FAResponse = {
+  message: string;
+};
+
+/**
+ * For verifying 2FA during login with a temporary token.
+ */
+export type TVerify2FATempRequest = {
+  tempToken: string;
+  token?: string;
+  backupCode?: string;
+};
+
+export type TVerify2FATempResponse = {
+  token?: string;
+  user?: TUser;
+  message?: string;
+};
+
+/**
+ * Response from disabling 2FA.
+ */
+export type TDisable2FAResponse = {
+  message: string;
+};
+
+/**
+ * Response from regenerating backup codes.
+ */
+export type TRegenerateBackupCodesResponse = {
+  message: string;
+  backupCodes: string[];
+  backupCodesHash: string[];
 };
 
 export type TRequestPasswordReset = {
